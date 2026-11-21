@@ -1,0 +1,17 @@
+{% extends 'library/base.html' %}
+{% block title %}Explore books{% endblock %}
+{% block content %}
+<section class="page-hero compact-hero"><div class="section-shell"><span class="eyebrow">THE COLLECTION</span><h1>Explore your next read.</h1><p>Search the campus catalogue and check copy availability before you visit.</p></div></section>
+<section class="section-shell catalog-layout">
+  <aside class="filter-panel"><h2>Refine your search</h2><form method="get" action="{% url 'catalog' %}" class="filter-form">
+    <label class="field-label" for="q">Keyword</label><input id="q" class="input" name="q" value="{{ request.GET.q }}" placeholder="Title, author, ISBN">
+    <label class="field-label" for="category">Category</label><select id="category" class="input" name="category"><option value="">All categories</option>{% for category in categories %}<option value="{{ category.pk }}" {% if request.GET.category == category.pk|stringformat:'s' %}selected{% endif %}>{{ category.name }}</option>{% endfor %}</select>
+    <label class="check-row"><input type="checkbox" name="available" value="1" {% if request.GET.available %}checked{% endif %}><span>Available now</span></label>
+    <button class="btn btn-primary btn-block" type="submit">Apply filters</button><a class="clear-link" href="{% url 'catalog' %}">Clear filters</a>
+  </form></aside>
+  <div class="catalog-results"><div class="results-top"><div><strong>{{ page_obj.paginator.count|default:books|length }}</strong> books found</div><form method="get" class="sort-form"><input type="hidden" name="q" value="{{ request.GET.q }}"><label for="sort">Sort by</label><select id="sort" name="sort" onchange="this.form.submit()"><option value="title">Title A–Z</option><option value="newest" {% if request.GET.sort == 'newest' %}selected{% endif %}>Recently added</option></select></form></div>
+    <div class="book-grid catalog-grid">{% for book in books %}{% include 'library/includes/book_card.html' with book=book %}{% empty %}{% for book in demo_books %}{% include 'library/includes/book_card.html' with book=book %}{% empty %}<div class="empty-state"><span>⌕</span><h3>No books found</h3><p>Try a different title, author, or category.</p></div>{% endfor %}{% endfor %}</div>
+    {% if is_paginated %}<nav class="pagination" aria-label="Pagination">{% if page_obj.has_previous %}<a href="?page={{ page_obj.previous_page_number }}">← Previous</a>{% endif %}<span>Page {{ page_obj.number }} of {{ page_obj.paginator.num_pages }}</span>{% if page_obj.has_next %}<a href="?page={{ page_obj.next_page_number }}">Next →</a>{% endif %}</nav>{% endif %}
+  </div>
+</section>
+{% endblock %}

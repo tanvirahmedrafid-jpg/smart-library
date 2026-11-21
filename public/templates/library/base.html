@@ -1,0 +1,192 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#1E3A8A">
+  <title>{% block title %}S-liBro{% endblock %} | Your Smart Campus Library</title>
+  
+  <!-- S-liBro App Icon / Favicon -->
+  <link rel="icon" type="image/x-icon" href="{% static 'library/images/brand/favicon.ico' %}">
+  <link rel="icon" type="image/png" href="{% static 'library/images/brand/open_book_icon.png' %}">
+  <link rel="apple-touch-icon" href="{% static 'library/images/brand/open_book_icon.png' %}">
+  
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@500;600;700;800&display=swap" rel="stylesheet">
+  
+  <link rel="stylesheet" href="{% static 'library_ui/css/library.css' %}">
+  {% block extra_css %}{% endblock %}
+
+  <!-- Dark Mode Instant Theme Detection (Prevents Flash) -->
+  <script>
+    (function() {
+      const savedTheme = localStorage.getItem('slibro_theme');
+      if (savedTheme === 'dark' || (!savedTheme && window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+        document.documentElement.setAttribute('data-theme', 'dark');
+        document.documentElement.classList.add('theme-dark');
+      } else {
+        document.documentElement.setAttribute('data-theme', 'light');
+        document.documentElement.classList.remove('theme-dark');
+      }
+    })();
+  </script>
+</head>
+<body>
+
+<header class="topbar">
+  <a class="brand" href="{% url 'home' %}" aria-label="S-liBro Home" style="display:flex; align-items:center; gap:8px;">
+    <img src="{% static 'library/images/brand/logo.png' %}" alt="S-liBro - Your Smart Campus Library" width="126" height="42" style="max-height:42px; width:auto; object-fit:contain;">
+  </a>
+
+  <button class="mobile-menu" type="button" aria-label="Open navigation" aria-expanded="false" data-menu-toggle>☰</button>
+
+  <nav class="main-nav" data-menu>
+    <a href="{% url 'home' %}" class="{% if active_page == 'home' %}active{% endif %}">Home</a>
+    <a href="{% url 'catalog' %}" class="{% if active_page == 'catalog' %}active{% endif %}">Catalog</a>
+    <a href="{% if user.is_authenticated %}{% url 'dashboard_redirect' %}{% else %}{% url 'login' %}{% endif %}" class="{% if active_page == 'member' %}active{% endif %}">My Loans</a>
+    <a href="#about-library" class="nav-about-link">About</a>
+
+    {% if user.is_authenticated %}
+      {% if is_admin_user %}
+        <a href="{% url 'admin_portal' %}" class="{% if active_page == 'admin' %}active{% endif %}" style="color:var(--orange); font-weight:700;">Admin Control</a>
+        <a href="{% url 'staff_dashboard' %}" class="{% if active_page == 'staff' %}active{% endif %}">Librarian Desk</a>
+        <a href="{% url 'circulation' %}">Circulation</a>
+        <a href="{% url 'books' %}">Catalogue</a>
+        <a href="{% url 'members' %}">Members</a>
+        <a href="{% url 'reports' %}">Reports</a>
+      {% elif is_librarian_or_admin %}
+        <a href="{% url 'staff_dashboard' %}" class="{% if active_page == 'staff' %}active{% endif %}">Librarian Desk</a>
+        <a href="{% url 'circulation' %}">Circulation</a>
+        <a href="{% url 'books' %}">Catalogue</a>
+        <a href="{% url 'members' %}">Members</a>
+        <a href="{% url 'reports' %}">Reports</a>
+      {% endif %}
+      <a href="{% url 'logout' %}" class="mobile-nav-logout" style="color:#DC2626; font-weight:700;">🚪 Log out</a>
+    {% endif %}
+  </nav>
+
+  <div class="top-actions">
+    <!-- Dark Mode Toggle Button -->
+    <button id="themeToggleBtn" class="theme-toggle-btn" type="button" aria-label="Toggle dark mode" title="Switch Light/Dark Mode">
+      <span class="theme-icon-light" style="display:none;">☀️</span>
+      <span class="theme-icon-dark">🌙</span>
+      <span class="theme-label">Dark</span>
+    </button>
+
+    {% if user.is_authenticated %}
+      <span class="user-chip">
+        <span class="avatar avatar-small avatar-a">{{ user.first_name|default:user.username|slice:':1'|upper }}</span>
+        <span><strong>{{ user.first_name|default:user.username }}</strong> ({{ member_profile.role|default:'user'|title }})</span>
+      </span>
+      <a class="btn btn-small" href="{% url 'logout' %}" style="background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; font-weight:700; text-decoration:none; padding:8px 14px; border-radius:9px; display:inline-flex; align-items:center; gap:6px;">
+        🚪 <span>Log out</span>
+      </a>
+    {% else %}
+      <a class="btn btn-primary btn-small" href="{% url 'login' %}" style="background:#FF6B00; border-radius:99px; padding:9px 22px; font-weight:700;">Sign in</a>
+    {% endif %}
+  </div>
+</header>
+
+{% if messages %}
+<div class="flash-wrap">
+  {% for message in messages %}
+    <div class="flash flash-{{ message.tags|default:'info' }}">
+      {% if message.tags == 'success' %}✓{% elif message.tags == 'warning' %}⚠{% elif message.tags == 'error' %}✕{% else %}ℹ{% endif %}
+      <span>{{ message }}</span>
+    </div>
+  {% endfor %}
+</div>
+{% endif %}
+
+<main>
+  {% block content %}{% endblock %}
+</main>
+
+<!-- Floating Smart AI Assistant (LibroAI) -->
+<div class="ai-fab-container">
+  <button id="aiFabBtn" class="ai-fab-btn" type="button" aria-label="Open S-liBro AI Assistant">
+    ✦
+    <span class="ai-fab-badge">AI</span>
+  </button>
+</div>
+
+<div id="aiChatWindow" class="ai-chat-window">
+  <div class="ai-chat-header">
+    <div class="ai-chat-title">
+      <div class="ai-avatar">✦</div>
+      <div>
+        <strong>LibroAI Assistant</strong>
+        <small>S-liBro Smart Campus Helper</small>
+      </div>
+    </div>
+    <button id="aiCloseBtn" class="ai-close-btn" type="button" aria-label="Close Assistant">✕</button>
+  </div>
+
+  <div id="aiChatBody" class="ai-chat-body">
+    <div class="ai-msg ai-msg-bot">
+      <div>Hello! I am <strong>LibroAI</strong>, your S-liBro Assistant. How can I help you find books, check availability, or explain borrowing policies today?</div>
+      <div class="ai-chip-group">
+        <button type="button" class="ai-chip" data-chip="Search Python books">Search Python</button>
+        <button type="button" class="ai-chip" data-chip="What is the fine rate?">Fine Rate</button>
+        <button type="button" class="ai-chip" data-chip="Recommend best books">Recommended Books</button>
+        <button type="button" class="ai-chip" data-chip="Library borrowing rules">Loan Rules</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="ai-chat-footer">
+    <input id="aiChatInput" type="text" placeholder="Ask LibroAI about books, rules, fines..." autocomplete="off">
+    <button id="aiSendBtn" class="ai-send-btn" type="button">Send</button>
+  </div>
+</div>
+
+<!-- Mockup Matching Campus Footer -->
+<footer id="about-library" class="site-footer">
+  <div class="footer-mockup-inner">
+    <!-- Col 1: S-liBro Brand -->
+    <div class="footer-col footer-col-brand">
+      <a class="brand brand-footer" href="{% url 'home' %}" style="display:inline-flex; align-items:center; margin-bottom:8px;">
+        <img src="{% static 'library/images/brand/logo.png' %}" alt="S-liBro - Your Smart Campus Library" width="120" height="40" style="max-height:40px; width:auto; object-fit:contain;">
+      </a>
+      <span class="footer-tagline">Your Smart Campus Library</span>
+    </div>
+
+    <!-- Col 2: Campus Info -->
+    <div class="footer-col footer-col-info">
+      <h4>Campus Library</h4>
+      <div class="footer-info-row">
+        <span class="footer-icon">📍</span>
+        <span>University Campus, Main Library Building</span>
+      </div>
+      <div class="footer-info-row">
+        <span class="footer-icon">🕒</span>
+        <span>Open Daily: <strong>8:00 AM – 8:00 PM</strong></span>
+      </div>
+    </div>
+
+    <!-- Col 3: Community Motto with Curved Swoosh -->
+    <div class="footer-col footer-col-motto">
+      <p class="footer-motto-text">A smarter, more open library for our campus community.</p>
+      <div class="footer-swoosh-wrap">
+        <svg viewBox="0 0 160 16" fill="none" class="footer-swoosh-svg">
+          <path d="M 4 4 Q 80 16 156 3" stroke="#FF6B00" stroke-width="3" stroke-linecap="round"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <!-- Bottom Copyright Strip -->
+  <div class="footer-bottom-strip">
+    <div class="footer-bottom-inner">
+      <span>© {% now 'Y' %} <strong>S-liBro</strong> · All Rights Reserved.</span>
+      <span class="footer-creator">Created by <strong>Tanvir</strong></span>
+    </div>
+  </div>
+</footer>
+
+<script src="{% static 'library_ui/js/library.js' %}" defer></script>
+{% block extra_js %}{% endblock %}
+</body>
+</html>

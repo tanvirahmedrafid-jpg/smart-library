@@ -1,0 +1,113 @@
+{% extends 'library/base.html' %}
+{% block title %}Operational Reports & Analytics{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="dashboard-heading">
+    <div>
+      <span class="eyebrow">ADMINISTRATIVE INTELLIGENCE</span>
+      <h1>Library Reports & Audits</h1>
+      <p>Audit catalogue inventory, active circulation loans, overdue fines, and member status.</p>
+    </div>
+    <a class="btn btn-secondary" href="{% url 'report_csv' %}?report={{ request.GET.report|default:'inventory' }}">
+      ↓ Download CSV Export
+    </a>
+  </div>
+
+  <div class="metric-grid four-metrics">
+    <article class="metric-card">
+      <span class="metric-icon icon-lilac">▣</span>
+      <span class="metric-label">Book Titles</span>
+      <strong>{{ stats.total_titles }}</strong>
+      <small>Unique titles catalogued</small>
+    </article>
+
+    <article class="metric-card">
+      <span class="metric-icon icon-green">✓</span>
+      <span class="metric-label">Available Copies</span>
+      <strong>{{ stats.available_copies }}</strong>
+      <small>On physical shelves</small>
+    </article>
+
+    <article class="metric-card">
+      <span class="metric-icon icon-blue">↗</span>
+      <span class="metric-label">Active Loans</span>
+      <strong>{{ stats.active_loans }}</strong>
+      <small>Currently borrowed</small>
+    </article>
+
+    <article class="metric-card">
+      <span class="metric-icon icon-yellow">◷</span>
+      <span class="metric-label">Overdue Items</span>
+      <strong>{{ stats.overdue_loans }}</strong>
+      <small>Past return deadline</small>
+    </article>
+  </div>
+
+  <div class="panel report-panel">
+    <div class="report-tabs">
+      <a class="{% if request.GET.report == 'inventory' or not request.GET.report %}selected{% endif %}" href="?report=inventory">
+        Physical Inventory
+      </a>
+      <a class="{% if request.GET.report == 'loans' %}selected{% endif %}" href="?report=loans">
+        Active Loans
+      </a>
+      <a class="{% if request.GET.report == 'overdue' %}selected{% endif %}" href="?report=overdue">
+        Overdue Fines
+      </a>
+      <a class="{% if request.GET.report == 'members' %}selected{% endif %}" href="?report=members">
+        Member Directory
+      </a>
+    </div>
+
+    <div class="panel-heading report-heading" style="padding: 20px 24px 10px;">
+      <div>
+        <h2>{{ report_title }}</h2>
+        <p>Generated at: {{ report_updated|date:'M d, Y · H:i' }}</p>
+      </div>
+
+      <form method="get" class="date-filter">
+        <input type="hidden" name="report" value="{{ request.GET.report|default:'inventory' }}">
+        <label for="from">From</label>
+        <input id="from" type="date" name="from" value="{{ request.GET.from }}">
+        <label for="to">To</label>
+        <input id="to" type="date" name="to" value="{{ request.GET.to }}">
+        <button class="btn btn-secondary btn-small" type="submit">Filter Date</button>
+      </form>
+    </div>
+
+    <div class="table-wrap" style="padding: 0 16px 16px;">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Primary Record</th>
+            <th>Category / Identifier</th>
+            <th>Activity / Notes</th>
+            <th>Date</th>
+            <th>Status</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for row in report_rows %}
+          <tr>
+            <td><strong>{{ row.title }}</strong></td>
+            <td>{{ row.category }}</td>
+            <td>{{ row.activity }}</td>
+            <td>{{ row.date|date:'M d, Y' }}</td>
+            <td>
+              <span class="status-pill {% if row.is_overdue %}pill-overdue{% else %}pill-active{% endif %}">
+                {{ row.status }}
+              </span>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="table-empty">No transaction records found for this report filter.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+</section>
+{% endblock %}

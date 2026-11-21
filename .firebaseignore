@@ -1,0 +1,71 @@
+# Firebase Hosting .firebaseignore
+# Excludes all Python/Django server files — only static web assets should be deployed.
+
+# Python Virtual Environment (contains .exe, .dll, .pyd — forbidden on Spark plan)
+.venv/**
+**/.venv/**
+**/Scripts/**
+**/Lib/**
+**/Include/**
+*.exe
+*.dll
+*.pyd
+*.pyc
+*.pyo
+__pycache__/**
+**/__pycache__/**
+
+# Python source / Django backend files
+*.py
+manage.py
+requirements*.txt
+Pipfile
+Pipfile.lock
+
+# Django app folders (server-side only)
+accounts/**
+catalog/**
+circulation/**
+library/**
+smart_ai/**
+smart_library/**
+dashboard/**
+media/**
+
+# Database & secrets — NEVER deploy these
+*.sqlite3
+db.sqlite3
+*.db
+.env
+.env.*
+*.env
+
+# Dev / build artifacts
+brain/**
+*.log
+*.bat
+*.sh
+*.zip
+*.tar.gz
+
+# Docs & test files
+*.md
+test_app.py
+seed_data.py
+PROJECT_GUIDE.md
+
+# Node / other
+node_modules/**
+**/node_modules/**
+firebase.json
+.firebaserc
+
+# Git
+.git/**
+.gitignore
+
+# IDE / OS
+.vscode/**
+.idea/**
+.DS_Store
+Thumbs.db

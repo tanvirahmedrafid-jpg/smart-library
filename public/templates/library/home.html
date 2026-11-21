@@ -1,0 +1,333 @@
+{% extends 'library/base.html' %}
+{% load static %}
+
+{% block title %}S-liBro | Your Smart Campus Library{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'library_ui/css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="home-page mockup-theme">
+
+  <!-- ========================================================
+       1. HERO SECTION (With High-Contrast Banner Art)
+       ======================================================== -->
+  <section class="mockup-hero-wrap">
+    <div class="mockup-hero-card">
+      <!-- Left Copy & Search -->
+      <div class="mockup-hero-content">
+        <div class="hero-campus-badge">
+          <span class="badge-dot-live"></span>
+          <span>CAMPUS DIGITAL CATALOGUE · CENTRAL LIBRARY</span>
+        </div>
+        <h1 class="mockup-hero-title">
+          Find your next <span class="hero-dot-orange">read.</span>
+        </h1>
+        <p class="mockup-hero-subtitle">
+          Search the campus library's collection of books, e-books, and academic resources to support your learning and research.
+        </p>
+
+        <form class="mockup-hero-search-form" method="get" action="{% url 'catalog' %}">
+          <div class="mockup-search-pill">
+            <span class="mockup-search-icon">🔍</span>
+            <input
+              name="q"
+              type="search"
+              placeholder="Search by title, author, or ISBN"
+              aria-label="Search books"
+              autocomplete="off"
+            >
+            <button class="mockup-search-btn" type="submit">
+              Search books
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Right Curved Graphic / High-Resolution Library Banner -->
+      <div class="mockup-hero-art-side">
+        <div class="mockup-wave-swoosh"></div>
+        <div class="mockup-hero-image-wrap">
+          <picture>
+            <source srcset="{% static 'library/images/promotions/smart_campus_banner.webp' %}" type="image/webp">
+            <img
+              src="{% static 'library/images/promotions/smart_campus_banner.png' %}"
+              alt="S-liBro Smart Campus Library Reading Collection"
+              width="540"
+              height="280"
+              class="mockup-hero-img"
+              style="object-fit:cover;"
+            >
+          </picture>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       2. FOUR STATS CARDS IN A ROW
+       ======================================================== -->
+  <section class="mockup-stats-container">
+    <div class="mockup-stats-grid">
+      <!-- Card 1: Books -->
+      <article class="mockup-stat-card">
+        <div class="stat-icon-box">
+          <span class="stat-icon">📖</span>
+        </div>
+        <div class="stat-meta">
+          <span class="stat-label">Books</span>
+          <strong class="stat-number">{{ stats.total_titles|default:'128,436' }}</strong>
+        </div>
+      </article>
+
+      <!-- Card 2: Available Now -->
+      <article class="mockup-stat-card">
+        <div class="stat-icon-box">
+          <span class="stat-icon">▤</span>
+        </div>
+        <div class="stat-meta">
+          <span class="stat-label">Available Now</span>
+          <strong class="stat-number">{{ stats.available_copies|default:'96,712' }}</strong>
+        </div>
+      </article>
+
+      <!-- Card 3: Active Members -->
+      <article class="mockup-stat-card">
+        <div class="stat-icon-box">
+          <span class="stat-icon">👥</span>
+        </div>
+        <div class="stat-meta">
+          <span class="stat-label">Active Members</span>
+          <strong class="stat-number">{{ stats.active_members|default:'24,859' }}</strong>
+        </div>
+      </article>
+
+      <!-- Card 4: Open Today -->
+      <article class="mockup-stat-card">
+        <div class="stat-icon-box">
+          <span class="stat-icon">🕒</span>
+        </div>
+        <div class="stat-meta">
+          <span class="stat-label">Open Today</span>
+          <strong class="stat-number stat-hours">{{ stats.opening_hours|default:'8:00 AM – 8:00 PM' }}</strong>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       3. BROWSE BY CATEGORY BAR
+       ======================================================== -->
+  <section class="mockup-category-section">
+    <div class="mockup-category-bar">
+      <div class="mockup-category-heading">
+        <strong>Browse by Category</strong>
+        <span class="mockup-divider">|</span>
+      </div>
+
+      <div class="mockup-category-pills">
+        <a href="{% url 'catalog' %}?q=Computer+Science" class="cat-pill-btn">
+          <span class="cat-pill-icon">💻</span>
+          <span class="cat-pill-text">Computer Science</span>
+        </a>
+        <a href="{% url 'catalog' %}?q=Business" class="cat-pill-btn">
+          <span class="cat-pill-icon">📊</span>
+          <span class="cat-pill-text">Business</span>
+        </a>
+        <a href="{% url 'catalog' %}?q=Literature" class="cat-pill-btn">
+          <span class="cat-pill-icon">📖</span>
+          <span class="cat-pill-text">Literature</span>
+        </a>
+        <a href="{% url 'catalog' %}?q=Science" class="cat-pill-btn">
+          <span class="cat-pill-icon">🔬</span>
+          <span class="cat-pill-text">Science</span>
+        </a>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       4. MAIN 2-COLUMN SECTION (FEATURED BOOKS + SIDEBAR)
+       ======================================================== -->
+  <section class="mockup-main-layout">
+    <!-- Left Column: Featured Books Grid -->
+    <div class="mockup-featured-col">
+      <div class="mockup-section-header">
+        <div class="mockup-section-title-wrap">
+          <span class="mockup-orange-bar"></span>
+          <h2 class="mockup-section-title">Featured Books</h2>
+        </div>
+        <a href="{% url 'catalog' %}" class="mockup-view-catalog-link">
+          View Catalog <span>→</span>
+        </a>
+      </div>
+
+      <div class="mockup-books-grid">
+        {% for book in featured_books %}
+          <div class="mockup-book-card">
+            <!-- 3D Book Cover Container -->
+            <a href="{% url 'book_detail' book.id %}" class="mockup-book-3d-wrap" aria-label="{{ book.title }}">
+              <div class="book-3d-stage">
+                <div class="book-3d-cover">
+                  {% if book.cover_image %}
+                    <img src="{{ book.cover_image.url }}" alt="{{ book.title }}" width="140" height="200" class="book-3d-img">
+                  {% else %}
+                    <div class="book-3d-fallback cover-{{ book.cover_style|default:'blue' }}">
+                      <span class="book-fallback-kicker">{{ book.category.name|default:'CAMPUS' }}</span>
+                      <strong class="book-fallback-title">{{ book.title }}</strong>
+                      <small class="book-fallback-author">{{ book.author }}</small>
+                    </div>
+                  {% endif %}
+                  <!-- Realistic Book Spine & Edge Highlights -->
+                  <div class="book-3d-spine"></div>
+                  <div class="book-3d-sheen"></div>
+                </div>
+              </div>
+            </a>
+
+            <!-- Book Meta & Availability -->
+            <div class="mockup-book-meta">
+              <h3 class="mockup-book-title">
+                <a href="{% url 'book_detail' book.id %}">{{ book.title }}</a>
+              </h3>
+              <p class="mockup-book-author">{{ book.author }}</p>
+
+              <div class="mockup-book-badge-wrap">
+                {% if book.available_copies_count > 1 %}
+                  <span class="badge-status badge-available">
+                    <span class="status-dot-bullet">●</span> Available Now
+                  </span>
+                {% elif book.available_copies_count == 1 %}
+                  <span class="badge-status badge-limited">
+                    <span class="status-dot-bullet">●</span> Limited Copies
+                  </span>
+                {% else %}
+                  <span class="badge-status badge-loaned">
+                    <span class="status-dot-bullet">●</span> On Loan
+                  </span>
+                {% endif %}
+              </div>
+            </div>
+          </div>
+        {% endfor %}
+      </div>
+    </div>
+
+    <!-- Right Column: Sidebar Cards -->
+    <aside class="mockup-sidebar-col">
+      <!-- Sidebar Card 1: Your Due Dates -->
+      <div class="mockup-sidebar-card card-due-dates">
+        <div class="sidebar-card-header">
+          <span class="sidebar-icon icon-calendar">📅</span>
+          <h3 class="sidebar-title">Your Due Dates</h3>
+        </div>
+
+        {% if user.is_authenticated %}
+          <p class="sidebar-text">
+            You currently have <strong>{{ user_loans_count }}</strong> active borrowed book{{ user_loans_count|pluralize }}. Check your return deadlines, status, and renewal options.
+          </p>
+          <a href="{% url 'dashboard_redirect' %}" class="sidebar-btn-orange">
+            View My Space <span>→</span>
+          </a>
+        {% else %}
+          <p class="sidebar-text">
+            Sign in to view your borrowed books, current due dates, and renewal options.
+          </p>
+          <a href="{% url 'login' %}" class="sidebar-btn-orange">
+            Sign in
+          </a>
+        {% endif %}
+      </div>
+
+      <!-- Sidebar Card 2: Borrowing Rules -->
+      <div class="mockup-sidebar-card card-borrowing-rules">
+        <div class="sidebar-card-header">
+          <span class="sidebar-icon icon-info-blue">ℹ</span>
+          <h3 class="sidebar-title">Borrowing Rules</h3>
+        </div>
+
+        <ul class="borrowing-rules-list">
+          <li><strong>Borrow up to 5 books</strong> at a time.</li>
+          <li><strong>Standard loan period:</strong> 14 days.</li>
+          <li><strong>Renew up to 2 times</strong> (if not reserved by another user).</li>
+          <li><strong>Return books on or before</strong> the due date to keep your account in good standing.</li>
+        </ul>
+      </div>
+    </aside>
+  </section>
+
+  <!-- ========================================================
+       5. CAMPUS PROMOTIONS & ANNOUNCEMENTS SECTION
+       Using Official Poster and Launch Assets
+       ======================================================== -->
+  <section class="mockup-announcements-section">
+    <div class="mockup-section-header">
+      <div class="mockup-section-title-wrap">
+        <span class="mockup-orange-bar"></span>
+        <h2 class="mockup-section-title">Campus Library Announcements</h2>
+      </div>
+      <span class="section-badge-info">Semester Academic Highlights</span>
+    </div>
+
+    <div class="promo-cards-grid">
+      <!-- Promo Card 1: Platform Launch -->
+      <article class="promo-card">
+        <div class="promo-card-media">
+          <picture>
+            <source srcset="{% static 'library/images/promotions/smart_campus_launch.webp' %}" type="image/webp">
+            <img
+              src="{% static 'library/images/promotions/smart_campus_launch.png' %}"
+              alt="S-liBro Smart Campus Library Launch"
+              width="420"
+              height="300"
+              loading="lazy"
+              class="promo-img"
+            >
+          </picture>
+        </div>
+        <div class="promo-card-body">
+          <span class="promo-tag">DIGITAL TRANSFORMATION</span>
+          <h3>Experience S-liBro: Your Smart Campus Library</h3>
+          <p>
+            Access our university catalogue 24/7 with instant copy availability, automated shortage alerts, and student demand analytics.
+          </p>
+          <div class="promo-actions">
+            <a href="{% url 'catalog' %}" class="btn btn-primary btn-small">Explore Catalogue <span>→</span></a>
+          </div>
+        </div>
+      </article>
+
+      <!-- Promo Card 2: Study Support & Gemini AI Assistant -->
+      <article class="promo-card">
+        <div class="promo-card-media">
+          <picture>
+            <source srcset="{% static 'library/images/promotions/smart_campus_poster.webp' %}" type="image/webp">
+            <img
+              src="{% static 'library/images/promotions/smart_campus_poster.png' %}"
+              alt="S-liBro Student Research and Study Support"
+              width="420"
+              height="300"
+              loading="lazy"
+              class="promo-img"
+            >
+          </picture>
+        </div>
+        <div class="promo-card-body">
+          <span class="promo-tag">STUDENT STUDY HUB</span>
+          <h3>AI-Assisted Book Discovery with LibroAI</h3>
+          <p>
+            Need syllabus recommendations or research references? Ask our Gemini-powered AI Assistant to find matching titles from our physical stacks.
+          </p>
+          <div class="promo-actions">
+            <button type="button" class="btn btn-secondary btn-small" onclick="document.getElementById('aiFabBtn').click();">
+              ✦ Open AI Assistant
+            </button>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+</div>
+{% endblock %}

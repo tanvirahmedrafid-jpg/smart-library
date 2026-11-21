@@ -1,0 +1,12 @@
+{% extends 'library/base.html' %}
+{% block title %}{{ book.title }}{% endblock %}
+{% block content %}
+<section class="section-shell detail-shell"><a class="back-link" href="{% url 'catalog' %}">← Back to collection</a>
+  <div class="detail-layout"><div class="detail-cover-wrap"><div class="book-cover detail-cover cover-{{ book.cover_style|default:'sage' }}">{% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="Cover of {{ book.title }}">{% else %}<div class="cover-art"><span class="cover-kicker">{{ book.category.name|default:book.category|default:'FEATURED READ' }}</span><span class="cover-symbol">✳</span><strong>{{ book.title }}</strong><small>{{ book.author }}</small></div>{% endif %}</div><div class="cover-caption">COLLECTION · {{ book.category.name|default:book.category|default:'GENERAL'|upper }}</div></div>
+  <div class="detail-copy"><span class="eyebrow">BOOK DETAILS</span><h1>{{ book.title }}</h1><p class="detail-author">by {{ book.author }}</p><div class="detail-rating"><span>★ {{ book.rating|default:'4.8' }}</span><span class="muted-dot">·</span><span>{{ book.review_count|default:'24' }} reader notes</span></div><p class="detail-description">{{ book.description|default:'A thoughtful addition to the library collection. Ask the librarian for help finding this title or explore related books in the catalogue.' }}</p>
+    <div class="detail-facts"><div><small>ISBN</small><strong>{{ book.isbn|default:'Not listed' }}</strong></div><div><small>Category</small><strong>{{ book.category.name|default:book.category|default:'General' }}</strong></div><div><small>Shelf</small><strong>{{ book.shelf_location|default:'Ask librarian' }}</strong></div></div>
+    <div class="availability-box"><span class="status-dot"></span><div><strong>{% if book.available_copies %}{{ book.available_copies }} copy/copies available{% elif book.availability == 'Available' %}Available to borrow{% else %}Currently on loan{% endif %}</strong><small>Availability can change during library hours.</small></div></div>
+    <div class="detail-actions"><span class="book-price large-price">৳ {{ book.price|default:book.replacement_price|default:'450' }} <small>reference value · not for sale</small></span>{% if user.is_authenticated %}<a class="btn btn-primary" href="{% url 'member_dashboard' %}">View my loans <span>→</span></a>{% else %}<a class="btn btn-primary" href="{% url 'login' %}?next={{ request.path|urlencode }}">Log in to borrow <span>→</span></a>{% endif %}</div>
+  </div></div>
+</section>
+{% endblock %}

@@ -1,0 +1,233 @@
+{% extends 'library/base.html' %}
+{% block title %}Administrator Security & Control Center{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="dashboard-heading">
+    <div>
+      <span class="eyebrow" style="color:var(--orange);">ADMINISTRATOR SECURITY CONTROL</span>
+      <h1>System & Security Management</h1>
+      <p>Manage user credentials, database backup/recovery, circulation policies, and audit logs.</p>
+    </div>
+    <div style="display:flex; gap:10px; align-items:center; flex-wrap:wrap;">
+      <a class="btn btn-primary" href="{% url 'admin_download_db_backup' %}">
+        ↓ Download Database Backup
+      </a>
+      <a class="btn btn-secondary" href="{% url 'staff_dashboard' %}">View Librarian Desk</a>
+      <a class="btn btn-small" href="{% url 'logout' %}" style="background:#FEF2F2; color:#DC2626; border:1px solid #FECACA; font-weight:700; text-decoration:none; padding:8px 14px; border-radius:9px; display:inline-flex; align-items:center; gap:6px;">
+        🚪 Log out
+      </a>
+    </div>
+  </div>
+
+  <!-- High Level Security Metrics -->
+  <div class="metric-grid four-metrics">
+    <article class="metric-card">
+      <span class="metric-icon icon-lilac">👤</span>
+      <span class="metric-label">Registered Accounts</span>
+      <strong>{{ db_stats.total_users }}</strong>
+      <small>Students & staff</small>
+    </article>
+
+    <article class="metric-card">
+      <span class="metric-icon icon-green">🛡️</span>
+      <span class="metric-label">Database Health</span>
+      <strong style="color:var(--green); font-size:18px;">{{ db_stats.status }}</strong>
+      <small>{{ db_stats.engine }} ({{ db_stats.size_kb }} KB)</small>
+    </article>
+
+    <article class="metric-card">
+      <span class="metric-icon icon-blue">📋</span>
+      <span class="metric-label">Security Audit Logs</span>
+      <strong>{{ db_stats.total_security_logs }}</strong>
+      <small>Tracked system actions</small>
+    </article>
+
+    <article class="metric-card">
+      <span class="metric-icon icon-yellow">⚙️</span>
+      <span class="metric-label">Active Policies</span>
+      <strong>{{ library_settings.loan_period_days }}d / ৳{{ library_settings.fine_per_day }}</strong>
+      <small>Loan duration & daily fine</small>
+    </article>
+  </div>
+
+  <!-- Administration Grid: Password/User Management & Database Backup -->
+  <div class="circulation-grid" style="margin-top: 10px;">
+    <!-- Section 1: User Password Management & Reset -->
+    <section class="panel circulation-card">
+      <div class="circulation-icon icon-lilac">🔑</div>
+      <span class="eyebrow">CREDENTIAL MANAGEMENT</span>
+      <h2>User Password Reset</h2>
+      <p>Select any user account to securely reset their login password.</p>
+
+      <form method="post" class="form-stack">
+        {% csrf_token %}
+        <input type="hidden" name="action" value="reset_password">
+
+        <label for="target_user">Target Account</label>
+        <select class="input" id="target_user" name="target_user_id" required>
+          <option value="">Select account to reset...</option>
+          {% for u in users_list %}
+            <option value="{{ u.pk }}">
+              {{ u.username }} ({{ u.first_name|default:u.username }}) — [{{ u.member_profile.get_role_display|default:'Staff/Admin' }}]
+            </option>
+          {% endfor %}
+        </select>
+
+        <label for="new_pwd">New Password</label>
+        <input class="input" type="password" id="new_pwd" name="new_password" required minlength="4" placeholder="Enter new password (min 4 chars)">
+
+        <label for="confirm_pwd">Confirm New Password</label>
+        <input class="input" type="password" id="confirm_pwd" name="confirm_password" required minlength="4" placeholder="Re-enter password">
+
+        <div style="margin-top: 12px;">
+          <button class="btn btn-primary btn-block" type="submit">
+            Apply Password Reset <span>→</span>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <!-- Section 2: Database Backup & Maintenance -->
+    <section class="panel circulation-card return-card">
+      <div class="circulation-icon icon-green">💾</div>
+      <span class="eyebrow">DATA INTEGRITY & BACKUP</span>
+      <h2>Database Maintenance</h2>
+      <p>Download full SQLite backup snapshot or inspect table record counts.</p>
+
+      <div style="background: white; border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-top: 14px;">
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
+          <div><span style="color:var(--muted);">Database Engine:</span> <strong>{{ db_stats.engine }}</strong></div>
+          <div><span style="color:var(--muted);">File Name:</span> <code>{{ db_stats.path }}</code></div>
+          <div><span style="color:var(--muted);">File Size:</span> <strong>{{ db_stats.size_kb }} KB</strong></div>
+          <div><span style="color:var(--muted);">Last Written:</span> <strong>{{ db_stats.last_modified }}</strong></div>
+        </div>
+
+        <hr style="border: 0; border-top: 1px solid var(--line); margin: 12px 0;">
+
+        <div style="display:flex; justify-content:space-between; font-size:10.5px; color:var(--muted);">
+          <span>Titles: <strong>{{ db_stats.total_books }}</strong></span>
+          <span>Copies: <strong>{{ db_stats.total_copies }}</strong></span>
+          <span>Loans: <strong>{{ db_stats.total_loans }}</strong></span>
+          <span>Surveys: <strong>{{ db_stats.total_surveys }}</strong></span>
+        </div>
+      </div>
+
+      <div style="margin-top: 18px;">
+        <a class="btn btn-dark btn-block" href="{% url 'admin_download_db_backup' %}">
+          ↓ Download Live Database Backup (.sqlite3)
+        </a>
+      </div>
+      <small style="display:block; text-align:center; color:var(--muted); font-size:9.5px; margin-top:8px;">
+        Creates an instant downloadable snapshot with security audit logging.
+      </small>
+    </section>
+  </div>
+
+  <!-- Section 3: System Policies & Demand Analytics Configuration -->
+  <section class="panel" style="margin-top: 24px;">
+    <div class="panel-heading">
+      <div>
+        <span class="eyebrow" style="color:var(--orange);">CIRCULATION & ANALYTICS RULES</span>
+        <h2>System Policies & Demand Analytics Weights</h2>
+        <p>Configure borrowing constraints and weights for the formula: D = wB·B + wR·R + wS·S + wQ·Q</p>
+      </div>
+    </div>
+
+    <form method="post" class="form-grid" style="grid-template-columns: repeat(4, 1fr); gap: 14px;">
+      {% csrf_token %}
+      <input type="hidden" name="action" value="update_settings">
+
+      <p>
+        <label style="font-weight:700; font-size:10.5px;">Loan Duration (Days)</label>
+        <input class="input" type="number" name="loan_period_days" value="{{ library_settings.loan_period_days }}" min="1" max="60" required>
+      </p>
+
+      <p>
+        <label style="font-weight:700; font-size:10.5px;">Max Active Books / Student</label>
+        <input class="input" type="number" name="max_active_loans" value="{{ library_settings.max_active_loans }}" min="1" max="10" required>
+      </p>
+
+      <p>
+        <label style="font-weight:700; font-size:10.5px;">Daily Overdue Fine (BDT)</label>
+        <input class="input" type="number" step="0.50" name="fine_per_day" value="{{ library_settings.fine_per_day }}" min="0" required>
+      </p>
+
+      <p>
+        <label style="font-weight:700; font-size:10.5px;">Shortage Demand Threshold</label>
+        <input class="input" type="number" step="1" name="shortage_threshold_demand" value="{{ library_settings.shortage_threshold_demand }}" min="10" max="100" required>
+      </p>
+
+      <p>
+        <label style="font-weight:700; font-size:10.5px;">Weight: Borrowing (wB)</label>
+        <input class="input" type="number" step="0.05" name="weight_borrowing" value="{{ library_settings.weight_borrowing }}" min="0" max="1" required>
+      </p>
+
+      <p>
+        <label style="font-weight:700; font-size:10.5px;">Weight: Reservations (wR)</label>
+        <input class="input" type="number" step="0.05" name="weight_reservation" value="{{ library_settings.weight_reservation }}" min="0" max="1" required>
+      </p>
+
+      <p>
+        <label style="font-weight:700; font-size:10.5px;">Weight: Survey Interest (wS)</label>
+        <input class="input" type="number" step="0.05" name="weight_survey" value="{{ library_settings.weight_survey }}" min="0" max="1" required>
+      </p>
+
+      <p>
+        <label style="font-weight:700; font-size:10.5px;">Weight: Search Queries (wQ)</label>
+        <input class="input" type="number" step="0.05" name="weight_search" value="{{ library_settings.weight_search }}" min="0" max="1" required>
+      </p>
+
+      <div style="grid-column: 1 / -1; margin-top: 10px;">
+        <button class="btn btn-primary" type="submit">Save System Configuration <span>→</span></button>
+      </div>
+    </form>
+  </section>
+
+  <!-- Section 4: Live Security Audit Trail -->
+  <section class="panel history-panel" style="margin-top: 24px;">
+    <div class="panel-heading">
+      <div>
+        <span class="eyebrow" style="color:var(--orange);">SECURITY & ACCESS MONITOR</span>
+        <h2>Security Audit Trail & Access Logs</h2>
+        <p>Live stream of authentication events, credential updates, role assignments, and database downloads.</p>
+      </div>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Timestamp</th>
+            <th>Event Action</th>
+            <th>Responsible User</th>
+            <th>IP Address</th>
+            <th>Security Details</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for log in security_logs %}
+          <tr>
+            <td><code>{{ log.timestamp|date:'Y-m-d H:i:s' }}</code></td>
+            <td>
+              <span class="status-pill {% if log.action == 'LOGIN_FAILED' %}pill-overdue{% elif log.action == 'PASSWORD_RESET' or log.action == 'DB_BACKUP' %}pill-warning{% else %}pill-active{% endif %}">
+                {{ log.get_action_display }}
+              </span>
+            </td>
+            <td>
+              <strong>{{ log.user.username|default:'Anonymous Client' }}</strong>
+            </td>
+            <td><code>{{ log.ip_address|default:'127.0.0.1' }}</code></td>
+            <td>{{ log.details }}</td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="5" class="table-empty">No security logs recorded yet.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </section>
+</section>
+{% endblock %}

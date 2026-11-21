@@ -1,0 +1,9 @@
+<article class="book-card">
+  <a class="cover-link" href="{% url 'book_detail' book.pk|default:book.id %}" aria-label="View {{ book.title }}">
+    <div class="book-cover cover-{{ book.cover_style|default:'sage' }}" data-cover="{{ book.cover_style|default:'sage' }}">
+      {% if book.cover_image %}<img src="{{ book.cover_image.url }}" alt="Cover of {{ book.title }}">{% else %}<div class="cover-art"><span class="cover-kicker">{{ book.category.name|default:book.category|default:'FEATURED READ' }}</span><span class="cover-symbol">{% cycle '✳' '◈' '◉' '✦' '⌘' %}</span><strong>{{ book.title }}</strong><small>{{ book.author }}</small></div>{% endif %}
+      {% if not book.is_available %}<span class="cover-badge badge-issued">On loan</span>{% else %}<span class="cover-badge">Available ({{ book.available_copies_count }})</span>{% endif %}
+    </div>
+  </a>
+  <div class="book-card-info"><div class="book-meta"><span>{{ book.category.name|default:book.category|default:'Featured' }}</span><span class="rating">★ {{ book.rating|default:'4.8' }}</span></div><h3><a href="{% url 'book_detail' book.pk|default:book.id %}">{{ book.title }}</a></h3><p>by {{ book.author }}</p><div class="book-card-bottom"><span class="book-price">৳ {{ book.price|default:'450' }} <small>reference value</small></span><a class="round-link" href="{% url 'book_detail' book.pk|default:book.id %}" aria-label="View details">↗</a></div></div>
+</article>

@@ -1,0 +1,70 @@
+{% extends 'library/base.html' %}
+{% load static %}
+
+{% block title %}Sign in to S-liBro{% endblock %}
+
+{% block content %}
+<section class="auth-shell">
+  <div class="auth-art" style="background: linear-gradient(135deg, #0F2C59 0%, #1E3A8A 100%);">
+    <div style="margin-bottom: 20px;">
+      <img src="{% static 'library_ui/img/app_icon.jpg' %}" alt="S-liBro Icon" style="width: 60px; height: 60px; border-radius: 14px; border: 2px solid white; box-shadow: 0 8px 20px rgba(0,0,0,0.25);">
+    </div>
+    <span class="eyebrow" style="color:var(--orange);">S-LIBRO CAMPUS ACCESS</span>
+    <h1>Your Smart Campus<br>Library Starts Here.</h1>
+    <p>Sign in to access your loans, track due dates, view AI-assisted recommendations, and participate in library demand surveys.</p>
+
+    <div class="mini-books">
+      <i class="mini-book mini-book-one"></i>
+      <i class="mini-book mini-book-two"></i>
+      <i class="mini-book mini-book-three"></i>
+    </div>
+    <span class="auth-art-note">Central Campus Library · S-liBro</span>
+  </div>
+
+  <div class="auth-card">
+    <div style="display: flex; align-items: center; justify-content: space-between; margin-bottom: 15px;">
+      <a class="back-link" href="{% url 'home' %}" style="margin-bottom: 0;">← Back to home</a>
+      <img src="{% static 'library_ui/img/logo.png' %}" alt="S-liBro Logo" height="28" style="max-height: 28px; width: auto;">
+    </div>
+
+    <span class="eyebrow">AUTHENTICATION</span>
+    <h2>Sign in to S-liBro</h2>
+    <p class="muted">Access your student portal, librarian desk, or admin control.</p>
+
+    <form method="post" class="form-stack">
+      {% csrf_token %}
+      {% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}
+      {% if form.non_field_errors %}
+        <div class="form-error" style="color:#B91C1C; background:#FEF2F2; padding:10px; border-radius:8px; font-size:12px; margin-bottom:10px;">
+          {{ form.non_field_errors }}
+        </div>
+      {% endif %}
+
+      <label for="id_username">Username / Student ID</label>
+      <input class="input" type="text" name="username" id="id_username" autocomplete="username" required value="{{ form.username.value|default:'' }}" placeholder="e.g. tanvir or librarian">
+      {% if form.username.errors %}<small class="field-error" style="color:#B91C1C;">{{ form.username.errors|striptags }}</small>{% endif %}
+
+      <label for="id_password">Password</label>
+      <div class="password-wrap">
+        <input class="input" type="password" name="password" id="id_password" autocomplete="current-password" required placeholder="Enter password">
+        <button type="button" class="password-toggle" data-password-toggle>Show</button>
+      </div>
+      {% if form.password.errors %}<small class="field-error" style="color:#B91C1C;">{{ form.password.errors|striptags }}</small>{% endif %}
+
+      <button class="btn btn-primary btn-block" type="submit">Sign In to Dashboard <span>→</span></button>
+    </form>
+
+    <!-- Demo Credentials Helper -->
+    <div style="margin-top:24px; padding:14px; background:#EFF6FF; border-radius:12px; border:1px solid #BFDBFE;">
+      <span style="font-size:10px; font-weight:800; color:var(--blue-dark); text-transform:uppercase; letter-spacing:0.5px; display:block; margin-bottom:6px;">
+        Demo Presentation Logins:
+      </span>
+      <div style="font-size:11px; color:#1E3A8A; line-height:1.7;">
+        • <strong>Student Portal:</strong> <code>tanvir</code> / <code>stu123</code> (Loans, Fines & Survey)<br>
+        • <strong>Librarian Desk:</strong> <code>librarian</code> / <code>lib123</code> (Circulation & Demand Analytics)<br>
+        • <strong>Admin Security:</strong> <code>admin</code> / <code>admin123</code> (Password Control, DB Backup & Audit)
+      </div>
+    </div>
+  </div>
+</section>
+{% endblock %}

@@ -1,0 +1,651 @@
+{% extends 'library/base.html' %}
+{% block title %}Manage Catalogue & AI Librarian Assistant{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <!-- Top Heading -->
+  <div class="dashboard-heading">
+    <div>
+      <span class="eyebrow">CATALOGUE OPERATIONS</span>
+      <h1>Book Titles & Physical Copies</h1>
+      <p>Maintain titles, shelf allocations, ISBN records, physical barcode inventory, and AI commands.</p>
+    </div>
+    <div style="display: flex; gap: 10px; align-items: center;">
+      <a class="btn btn-secondary" href="#manual-book-form">＋ Manual Form</a>
+      <a class="btn btn-primary" href="#ai-command-desk" style="background: linear-gradient(135deg, var(--orange) 0%, #EA580C 100%);">✦ AI Command Assistant</a>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       AI LIBRARIAN COMMAND ASSISTANT COMPONENT
+       ======================================================== -->
+  <section class="librarian-ai-shell" id="ai-command-desk">
+    <div class="librarian-ai-header">
+      <div class="librarian-ai-title-wrap">
+        <div class="librarian-ai-icon">✦</div>
+        <div>
+          <h2>AI Librarian Command Assistant</h2>
+          <p>Type natural language commands in <strong>English</strong> or <strong>Bangla</strong> to add titles, allocate barcodes, or update records.</p>
+        </div>
+      </div>
+      <div class="ai-badges-row">
+        <span class="ai-badge-pill" id="aiEngineTag">✦ Google Gemini 2.5 Flash / Smart NLP</span>
+        <span class="ai-badge-pill ai-badge-accent">🛡️ 2-Step Safe Confirmation</span>
+      </div>
+    </div>
+
+    <!-- Quick Example Prompt Chips -->
+    <div class="command-chips-row">
+      <span class="command-chips-label">Sample Prompts:</span>
+      <button type="button" class="command-chip-btn" onclick="fillPrompt('Add 3 copies of Clean Code by Robert C. Martin, ISBN 9780132350884, category Programming, publisher Prentice Hall, edition 1, shelf Rack A, Shelf 2')">
+        🇬🇧 <strong>Clean Code</strong> (New Title + 3 Copies)
+      </button>
+      <button type="button" class="command-chip-btn" onclick="fillPrompt('৩ কপি বই যোগ করো: Artificial Intelligence A Modern Approach, লেখক Stuart Russell, আইএসবিএন 9780136042594, বিভাগ Computer Science, শেলফ Rack B-2')">
+        🇧🇩 <strong>AI Modern Approach</strong> (বাংলা কমান্ড)
+      </button>
+      <button type="button" class="command-chip-btn" onclick="fillPrompt('Add 2 copies to existing book Clean Code')">
+        ➕ Add Copies to Clean Code
+      </button>
+      <button type="button" class="command-chip-btn" onclick="fillPrompt('Update book Clean Code shelf location to Rack CS-03, Shelf B')">
+        ✏️ Update Shelf Location
+      </button>
+    </div>
+
+    <!-- Command Input Box -->
+    <div class="command-input-container">
+      <textarea id="aiCommandInput" class="command-textarea" placeholder="Type a command in English or Bangla... (e.g. 'Add 3 copies of Clean Code by Robert C. Martin, ISBN 9780132350884, category Programming, publisher Prentice Hall, edition 1, shelf Rack A, Shelf 2')"></textarea>
+    </div>
+
+    <div class="command-actions-bar">
+      <div class="command-actions-left">
+        <button type="button" id="btnInterpretCmd" class="btn-interpret" onclick="handleInterpretCommand()">
+          <span id="btnInterpretSpinner" style="display:none;">⏳</span>
+          <span id="btnInterpretText">✦ Interpret Command</span>
+        </button>
+        <button type="button" class="btn btn-secondary" onclick="clearCommandBox()">✕ Clear</button>
+      </div>
+      <div>
+        <a href="#manual-book-form" class="btn-link" style="font-size: 11.5px; color: var(--muted); text-decoration: underline;">
+          Or switch to Manual Form below ↓
+        </a>
+      </div>
+    </div>
+
+    <!-- AI Status Alerts (Missing Fields / Question / Error) -->
+    <div id="aiStatusAlert" class="ai-status-alert"></div>
+
+    <!-- AI Live Preview & Review Card (Editable before saving) -->
+    <div id="aiPreviewCard" class="ai-preview-card">
+      <div class="preview-header-bar">
+        <div class="preview-header-left">
+          <strong style="font-size: 13.5px; color: var(--blue-dark);">Interpreted Parameters Preview</strong>
+          <span id="previewActionBadge" class="action-tag action-tag-add">Add Book & Barcodes</span>
+          <span id="previewEngineBadge" class="ai-badge-pill" style="font-size: 9.5px;">Gemini Powered</span>
+        </div>
+        <small style="color: var(--muted); font-size: 11px;">Review or edit extracted details before executing.</small>
+      </div>
+
+      <!-- Duplicate Book Warning Banner -->
+      <div id="duplicateAlertBox" class="duplicate-alert-box" style="display: none;">
+        <div>
+          <strong>Notice:</strong> <span id="duplicateAlertMsg">This ISBN / Title already exists in the catalogue.</span>
+        </div>
+        <button type="button" class="btn btn-small" style="background: var(--orange); color: white; border: none; font-size: 11px; padding: 4px 10px; border-radius: 6px;" onclick="switchToExistingAction()">
+          Switch to Add Copies
+        </button>
+      </div>
+
+      <!-- Editable Form Grid -->
+      <form id="aiReviewForm" onsubmit="event.preventDefault();">
+        <input type="hidden" id="reviewAction" value="add_book">
+        <input type="hidden" id="reviewExistingId" value="">
+
+        <div class="review-grid">
+          <div class="review-field-group col-span-2">
+            <label for="reviewTitle">Book Title *</label>
+            <input type="text" id="reviewTitle" required placeholder="Full book title">
+          </div>
+
+          <div class="review-field-group">
+            <label for="reviewAuthor">Author(s) *</label>
+            <input type="text" id="reviewAuthor" required placeholder="Author name(s)">
+          </div>
+
+          <div class="review-field-group">
+            <label for="reviewIsbn">ISBN *</label>
+            <input type="text" id="reviewIsbn" required placeholder="e.g. 978-0132350884">
+          </div>
+
+          <div class="review-field-group">
+            <label for="reviewCategory">Category</label>
+            <select id="reviewCategory">
+              {% for cat in categories %}
+                <option value="{{ cat.id }}">{{ cat.name }}</option>
+              {% empty %}
+                <option value="">General</option>
+              {% endfor %}
+            </select>
+          </div>
+
+          <div class="review-field-group">
+            <label for="reviewCopies">Physical Copies to Add *</label>
+            <input type="number" id="reviewCopies" min="1" max="50" value="1" required>
+          </div>
+
+          <div class="review-field-group">
+            <label for="reviewPublisher">Publisher</label>
+            <input type="text" id="reviewPublisher" placeholder="e.g. Prentice Hall">
+          </div>
+
+          <div class="review-field-group">
+            <label for="reviewEdition">Edition</label>
+            <input type="text" id="reviewEdition" placeholder="e.g. 1st Edition">
+          </div>
+
+          <div class="review-field-group">
+            <label for="reviewShelf">Shelf Location</label>
+            <input type="text" id="reviewShelf" placeholder="e.g. Rack A-1, Shelf 3">
+          </div>
+
+          <div class="review-field-group">
+            <label for="reviewCoverTheme">Cover Theme</label>
+            <select id="reviewCoverTheme">
+              <option value="cover-blue">Royal Navy Blue</option>
+              <option value="cover-orange">Electric Orange</option>
+              <option value="cover-indigo">Deep Indigo</option>
+              <option value="cover-green">Emerald Green</option>
+              <option value="cover-gold">Amber Gold</option>
+            </select>
+          </div>
+
+          <div class="review-field-group col-span-full">
+            <label for="reviewDescription">Description / Notes</label>
+            <textarea id="reviewDescription" rows="2" placeholder="Brief book description or syllabus topic notes..."></textarea>
+          </div>
+        </div>
+
+        <div class="preview-actions-bar">
+          <button type="button" class="btn btn-secondary" onclick="dismissPreview()">✕ Dismiss</button>
+          <button type="button" class="btn-fill-form" onclick="populateManualFormFromAI()">✎ Populate Manual Form Below</button>
+          <button type="button" id="btnConfirmExecute" class="btn-confirm-save" onclick="handleExecuteCommand()">
+            <span id="btnExecuteSpinner" style="display:none;">⏳</span>
+            <span>✓ Confirm & Save to Catalogue</span>
+          </button>
+        </div>
+      </form>
+    </div>
+
+    <!-- AI Success Result Box -->
+    <div id="aiSuccessBox" class="ai-success-box">
+      <div style="display: flex; align-items: flex-start; justify-content: space-between; gap: 12px;">
+        <div>
+          <strong style="color: #15803D; font-size: 13.5px;" id="successBoxHeading">✓ Operation Successfully Executed!</strong>
+          <p id="successBoxMessage" style="font-size: 12px; color: #166534; margin: 4px 0 8px;"></p>
+          <div id="successBarcodesContainer" style="display: none;">
+            <div style="font-size: 11px; font-weight: 700; color: #166534; margin-bottom: 4px;">Allocated Barcode Copies:</div>
+            <div class="success-barcode-list" id="successBarcodesList"></div>
+          </div>
+        </div>
+        <div style="display: flex; gap: 8px;">
+          <a id="successBookLink" href="#" class="btn btn-small" style="background: #16A34A; color: white; text-decoration: none; font-size: 11px; padding: 6px 12px; border-radius: 6px; font-weight: 700; display: none;">View Book Detail →</a>
+          <button type="button" class="btn btn-small btn-secondary" onclick="resetAiWorkflow()" style="font-size: 11px;">Add Another Book</button>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ========================================================
+       EXISTING CATALOGUE TITLES TABLE
+       ======================================================== -->
+  <div class="panel list-panel">
+    <div class="list-toolbar">
+      <form class="toolbar-search" method="get">
+        <span>⌕</span>
+        <input name="q" value="{{ request.GET.q }}" placeholder="Search title, author, or ISBN">
+        <button type="submit">Search</button>
+      </form>
+      <span class="muted">{{ page_obj.paginator.count|default:books|length }} titles in collection</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Book Title</th>
+            <th>ISBN</th>
+            <th>Category</th>
+            <th>Shelf Location</th>
+            <th>Total Copies</th>
+            <th>Available Copies</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for book in books %}
+          <tr>
+            <td>
+              <div class="book-table-cell">
+                <div class="table-cover cover-{{ book.cover_style|default:'orange' }}">{{ book.title|slice:':1' }}</div>
+                <span>
+                  <strong><a href="{% url 'book_detail' book.pk %}" style="color:var(--blue-dark);">{{ book.title }}</a></strong>
+                  <small>{{ book.author }}</small>
+                </span>
+              </div>
+            </td>
+            <td><code>{{ book.isbn }}</code></td>
+            <td>{{ book.category.name|default:'General' }}</td>
+            <td>{{ book.shelf_location }}</td>
+            <td><strong>{{ book.total_copies_count }}</strong></td>
+            <td>
+              <span class="status-pill {% if book.available_copies_count > 0 %}pill-active{% else %}pill-overdue{% endif %}">
+                {{ book.available_copies_count }} Available
+              </span>
+            </td>
+            <td>
+              <a class="table-action" href="{% url 'book_edit' book.pk %}">Edit</a> · 
+              <a class="table-action" href="{% url 'book_detail' book.pk %}" style="color:var(--blue);">View</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="7" class="table-empty">No books found matching the search query.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- ========================================================
+       MANUAL BOOK FORM (Matching User Reference Layout)
+       ======================================================== -->
+  {% if book_form %}
+  <section class="panel form-panel" id="manual-book-form" style="margin-top: 30px;">
+    <div class="panel-heading" style="border-bottom: 1px solid var(--line); padding-bottom: 14px; margin-bottom: 20px;">
+      <div>
+        <h2 style="font-size: 18px; color: var(--blue-dark); font-weight: 800; margin: 0 0 4px;">
+          {% if book.pk %}Edit Book: {{ book.title }}{% else %}Add New Book Title & Copies{% endif %}
+        </h2>
+        <p style="font-size: 12px; color: var(--muted); margin: 0;">Define title parameters and automatically generate physical barcodes.</p>
+      </div>
+    </div>
+
+    <form method="post" enctype="multipart/form-data" class="form-grid" id="djangoBookForm">
+      {% csrf_token %}
+
+      <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 14px;">
+        <label for="id_title" style="display:block; font-size: 11.5px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px;">Title:</label>
+        {{ book_form.title }}
+        {% if book_form.title.errors %}<div style="color: #DC2626; font-size: 11px; margin-top: 4px;">{{ book_form.title.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 14px;">
+        <label for="id_author" style="display:block; font-size: 11.5px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px;">Author:</label>
+        {{ book_form.author }}
+        {% if book_form.author.errors %}<div style="color: #DC2626; font-size: 11px; margin-top: 4px;">{{ book_form.author.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 14px;">
+        <label for="id_isbn" style="display:block; font-size: 11.5px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px;">ISBN:</label>
+        {{ book_form.isbn }}
+        {% if book_form.isbn.errors %}<div style="color: #DC2626; font-size: 11px; margin-top: 4px;">{{ book_form.isbn.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 14px;">
+        <label for="id_category" style="display:block; font-size: 11.5px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px;">Category:</label>
+        {{ book_form.category }}
+        {% if book_form.category.errors %}<div style="color: #DC2626; font-size: 11px; margin-top: 4px;">{{ book_form.category.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 14px;">
+        <label for="id_publisher" style="display:block; font-size: 11.5px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px;">Publisher:</label>
+        {{ book_form.publisher }}
+        {% if book_form.publisher.errors %}<div style="color: #DC2626; font-size: 11px; margin-top: 4px;">{{ book_form.publisher.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 14px;">
+        <label for="id_edition" style="display:block; font-size: 11.5px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px;">Edition:</label>
+        {{ book_form.edition }}
+        {% if book_form.edition.errors %}<div style="color: #DC2626; font-size: 11px; margin-top: 4px;">{{ book_form.edition.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 14px;">
+        <label for="id_shelf_location" style="display:block; font-size: 11.5px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px;">Shelf location:</label>
+        {{ book_form.shelf_location }}
+        <small style="color: var(--muted); font-size: 10px; display: block; margin-top: 3px;">e.g. Rack A-3, Shelf 2</small>
+        {% if book_form.shelf_location.errors %}<div style="color: #DC2626; font-size: 11px; margin-top: 4px;">{{ book_form.shelf_location.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 14px;">
+        <label for="id_initial_copies" style="display:block; font-size: 11.5px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px;">Number of physical copies to add:</label>
+        {{ book_form.initial_copies }}
+        {% if book_form.initial_copies.errors %}<div style="color: #DC2626; font-size: 11px; margin-top: 4px;">{{ book_form.initial_copies.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 14px;">
+        <label for="id_description" style="display:block; font-size: 11.5px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px;">Description:</label>
+        {{ book_form.description }}
+        {% if book_form.description.errors %}<div style="color: #DC2626; font-size: 11px; margin-top: 4px;">{{ book_form.description.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 14px;">
+        <label for="id_cover_theme" style="display:block; font-size: 11.5px; font-weight: 700; color: var(--blue-dark); margin-bottom: 6px;">Cover theme:</label>
+        {{ book_form.cover_theme }}
+        {% if book_form.cover_theme.errors %}<div style="color: #DC2626; font-size: 11px; margin-top: 4px;">{{ book_form.cover_theme.errors.0 }}</div>{% endif %}
+      </div>
+
+      <div class="form-group" style="grid-column: 1 / -1; margin-bottom: 14px; display: flex; align-items: center; gap: 8px;">
+        {{ book_form.is_featured }}
+        <label for="id_is_featured" style="font-size: 11.5px; font-weight: 600; color: var(--ink); margin: 0; cursor: pointer;">Feature on Homepage Carousel</label>
+      </div>
+
+      <div style="grid-column: 1 / -1; margin-top: 10px;">
+        <button class="btn btn-primary" type="submit" style="background: var(--orange); border-radius: 9px; padding: 10px 22px; font-weight: 700;">
+          Save Book to Catalogue <span>→</span>
+        </button>
+      </div>
+    </form>
+  </section>
+  {% endif %}
+</section>
+
+<!-- ========================================================
+     LIBRARIAN AI ASSISTANT CLIENT LOGIC
+     ======================================================== -->
+<script>
+  let lastInterpretedResult = null;
+
+  function getCsrfToken() {
+    const input = document.querySelector('[name=csrfmiddlewaretoken]');
+    if (input && input.value) return input.value;
+    const cookie = document.cookie.split('; ').find(row => row.startsWith('csrftoken='));
+    return cookie ? cookie.split('=')[1] : '';
+  }
+
+  function fillPrompt(text) {
+    const input = document.getElementById('aiCommandInput');
+    input.value = text;
+    input.focus();
+    // Auto-scroll slightly to input
+    input.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function clearCommandBox() {
+    document.getElementById('aiCommandInput').value = '';
+    dismissPreview();
+    hideStatusAlert();
+  }
+
+  function hideStatusAlert() {
+    const alert = document.getElementById('aiStatusAlert');
+    alert.style.display = 'none';
+    alert.className = 'ai-status-alert';
+    alert.innerHTML = '';
+  }
+
+  function showStatusAlert(type, message) {
+    const alert = document.getElementById('aiStatusAlert');
+    alert.className = 'ai-status-alert ' + (type === 'error' ? 'ai-status-error' : 'ai-status-warning');
+    alert.innerHTML = (type === 'error' ? '<strong>Error:</strong> ' : '<strong>Follow-up / Notice:</strong> ') + message;
+    alert.style.display = 'block';
+  }
+
+  function dismissPreview() {
+    document.getElementById('aiPreviewCard').style.display = 'none';
+    lastInterpretedResult = null;
+  }
+
+  function resetAiWorkflow() {
+    document.getElementById('aiSuccessBox').style.display = 'none';
+    document.getElementById('aiCommandInput').value = '';
+    dismissPreview();
+    hideStatusAlert();
+    document.getElementById('aiCommandInput').focus();
+  }
+
+  // Step 1: Interpret Command
+  async function handleInterpretCommand() {
+    const commandText = document.getElementById('aiCommandInput').value.trim();
+    if (!commandText) {
+      showStatusAlert('warning', 'Please enter a natural-language command first (in English or Bangla).');
+      return;
+    }
+
+    hideStatusAlert();
+    dismissPreview();
+    document.getElementById('aiSuccessBox').style.display = 'none';
+
+    const btn = document.getElementById('btnInterpretCmd');
+    const spinner = document.getElementById('btnInterpretSpinner');
+    const btnText = document.getElementById('btnInterpretText');
+    btn.disabled = true;
+    spinner.style.display = 'inline-block';
+    btnText.textContent = 'Interpreting...';
+
+    try {
+      const response = await fetch("{% url 'librarian_ai_interpret' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({ command: commandText })
+      });
+
+      const data = await response.json();
+      lastInterpretedResult = data;
+
+      if (!data.success) {
+        showStatusAlert('error', data.error || 'Failed to interpret command.');
+        return;
+      }
+
+      // If missing required fields or follow-up notice
+      if (data.missing_fields && data.missing_fields.length > 0) {
+        showStatusAlert('warning', data.message || `Missing required details: ${data.missing_fields.join(', ')}. Please refine your command or fill them in below.`);
+      }
+
+      // Populate preview card fields
+      const fields = data.fields || {};
+      document.getElementById('reviewAction').value = data.action || 'add_book';
+      document.getElementById('reviewTitle').value = fields.title || '';
+      document.getElementById('reviewAuthor').value = fields.author || '';
+      document.getElementById('reviewIsbn').value = fields.isbn || '';
+      document.getElementById('reviewCopies').value = fields.copies_count || 1;
+      document.getElementById('reviewPublisher').value = fields.publisher || '';
+      document.getElementById('reviewEdition').value = fields.edition || '1st Edition';
+      document.getElementById('reviewShelf').value = fields.shelf_location || 'Rack CS-01, Shelf A';
+      document.getElementById('reviewDescription').value = fields.description || '';
+
+      if (fields.category_id) {
+        const catSelect = document.getElementById('reviewCategory');
+        catSelect.value = fields.category_id;
+      }
+      if (fields.cover_theme) {
+        document.getElementById('reviewCoverTheme').value = fields.cover_theme;
+      }
+
+      // Update Preview Card Badges
+      const actionBadge = document.getElementById('previewActionBadge');
+      if (data.action === 'add_copies') {
+        actionBadge.textContent = 'Add Copies to Existing Title';
+        actionBadge.className = 'action-tag action-tag-copies';
+      } else if (data.action === 'update_book') {
+        actionBadge.textContent = 'Update Existing Record';
+        actionBadge.className = 'action-tag action-tag-update';
+      } else if (data.action === 'search_book') {
+        actionBadge.textContent = 'Catalogue Search';
+        actionBadge.className = 'action-tag action-tag-copies';
+      } else {
+        actionBadge.textContent = 'Add New Title & Barcodes';
+        actionBadge.className = 'action-tag action-tag-add';
+      }
+
+      const engineBadge = document.getElementById('previewEngineBadge');
+      engineBadge.textContent = data.ai_engine || (data.ai_powered ? 'Gemini 2.5' : 'Local NLP');
+
+      // Duplicate Check Alert
+      const dupBox = document.getElementById('duplicateAlertBox');
+      const dupMsg = document.getElementById('duplicateAlertMsg');
+      if (data.existing_book) {
+        document.getElementById('reviewExistingId').value = data.existing_book.id;
+        dupMsg.textContent = `A book titled "${data.existing_book.title}" (ISBN: ${data.existing_book.isbn}) already exists with ${data.existing_book.copies_count} copies.`;
+        dupBox.style.display = 'flex';
+      } else {
+        document.getElementById('reviewExistingId').value = '';
+        dupBox.style.display = 'none';
+      }
+
+      // Show preview card
+      document.getElementById('aiPreviewCard').style.display = 'block';
+      document.getElementById('aiPreviewCard').scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (err) {
+      console.error(err);
+      showStatusAlert('error', 'Network or server communication error. Please try again.');
+    } finally {
+      btn.disabled = false;
+      spinner.style.display = 'none';
+      btnText.textContent = '✦ Interpret Command';
+    }
+  }
+
+  function switchToExistingAction() {
+    document.getElementById('reviewAction').value = 'add_copies';
+    const actionBadge = document.getElementById('previewActionBadge');
+    actionBadge.textContent = 'Add Copies to Existing Title';
+    actionBadge.className = 'action-tag action-tag-copies';
+    document.getElementById('duplicateAlertBox').style.display = 'none';
+  }
+
+  // Step 2: Populate Manual Django Form Below
+  function populateManualFormFromAI() {
+    const titleVal = document.getElementById('reviewTitle').value;
+    const authorVal = document.getElementById('reviewAuthor').value;
+    const isbnVal = document.getElementById('reviewIsbn').value;
+    const catVal = document.getElementById('reviewCategory').value;
+    const copiesVal = document.getElementById('reviewCopies').value;
+    const pubVal = document.getElementById('reviewPublisher').value;
+    const edVal = document.getElementById('reviewEdition').value;
+    const shelfVal = document.getElementById('reviewShelf').value;
+    const descVal = document.getElementById('reviewDescription').value;
+    const themeVal = document.getElementById('reviewCoverTheme').value;
+
+    const elTitle = document.getElementById('id_title');
+    const elAuthor = document.getElementById('id_author');
+    const elIsbn = document.getElementById('id_isbn');
+    const elCat = document.getElementById('id_category');
+    const elCopies = document.getElementById('id_initial_copies');
+    const elPub = document.getElementById('id_publisher');
+    const elEd = document.getElementById('id_edition');
+    const elShelf = document.getElementById('id_shelf_location');
+    const elDesc = document.getElementById('id_description');
+    const elTheme = document.getElementById('id_cover_theme');
+
+    if (elTitle) elTitle.value = titleVal;
+    if (elAuthor) elAuthor.value = authorVal;
+    if (elIsbn) elIsbn.value = isbnVal;
+    if (elCat) elCat.value = catVal;
+    if (elCopies) elCopies.value = copiesVal;
+    if (elPub) elPub.value = pubVal;
+    if (elEd) elEd.value = edVal;
+    if (elShelf) elShelf.value = shelfVal;
+    if (elDesc) elDesc.value = descVal;
+    if (elTheme) elTheme.value = themeVal;
+
+    const manualSection = document.getElementById('manual-book-form');
+    if (manualSection) {
+      manualSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      manualSection.style.outline = '2px solid var(--orange)';
+      setTimeout(() => { manualSection.style.outline = 'none'; }, 2000);
+    }
+  }
+
+  // Step 3: Execute Command via Server API
+  async function handleExecuteCommand() {
+    const action = document.getElementById('reviewAction').value;
+    const existingId = document.getElementById('reviewExistingId').value;
+    const fields = {
+      title: document.getElementById('reviewTitle').value.trim(),
+      author: document.getElementById('reviewAuthor').value.trim(),
+      isbn: document.getElementById('reviewIsbn').value.trim(),
+      category_id: document.getElementById('reviewCategory').value,
+      copies_count: parseInt(document.getElementById('reviewCopies').value) || 1,
+      publisher: document.getElementById('reviewPublisher').value.trim(),
+      edition: document.getElementById('reviewEdition').value.trim(),
+      shelf_location: document.getElementById('reviewShelf').value.trim(),
+      description: document.getElementById('reviewDescription').value.trim(),
+      cover_theme: document.getElementById('reviewCoverTheme').value
+    };
+
+    if (!fields.title) {
+      alert('Please enter a book title.');
+      document.getElementById('reviewTitle').focus();
+      return;
+    }
+
+    const btn = document.getElementById('btnConfirmExecute');
+    const spinner = document.getElementById('btnExecuteSpinner');
+    btn.disabled = true;
+    spinner.style.display = 'inline-block';
+
+    try {
+      const response = await fetch("{% url 'librarian_ai_execute' %}", {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'X-CSRFToken': getCsrfToken()
+        },
+        body: JSON.stringify({
+          action: action,
+          book_id: existingId,
+          fields: fields
+        })
+      });
+
+      const res = await response.json();
+
+      if (!res.success) {
+        alert('Execution failed: ' + (res.error || 'Server rejected the parameters.'));
+        return;
+      }
+
+      // Hide preview card and show success box
+      dismissPreview();
+      const successBox = document.getElementById('aiSuccessBox');
+      const heading = document.getElementById('successBoxHeading');
+      const message = document.getElementById('successBoxMessage');
+      const barcodesContainer = document.getElementById('successBarcodesContainer');
+      const barcodesList = document.getElementById('successBarcodesList');
+      const bookLink = document.getElementById('successBookLink');
+
+      heading.textContent = `✓ Successfully executed: ${fields.title}`;
+      message.textContent = res.message;
+
+      if (res.new_copies && res.new_copies.length > 0) {
+        barcodesContainer.style.display = 'block';
+        barcodesList.innerHTML = res.new_copies.map(c => `<span class="barcode-chip">🏷️ ${c}</span>`).join('');
+      } else {
+        barcodesContainer.style.display = 'none';
+      }
+
+      if (res.book_url) {
+        bookLink.href = res.book_url;
+        bookLink.style.display = 'inline-block';
+      } else {
+        bookLink.style.display = 'none';
+      }
+
+      successBox.style.display = 'block';
+      successBox.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+
+    } catch (err) {
+      console.error(err);
+      alert('Network or server error while executing command.');
+    } finally {
+      btn.disabled = false;
+      spinner.style.display = 'none';
+    }
+  }
+</script>
+{% endblock %}

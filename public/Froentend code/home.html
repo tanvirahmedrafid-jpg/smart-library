@@ -1,0 +1,136 @@
+{% extends 'library/base.html' %}
+{% load static %}
+
+{% block title %}Discover your next read{% endblock %}
+
+{% block extra_css %}
+<link rel="stylesheet" href="{% static 'library/css/home.css' %}">
+{% endblock %}
+
+{% block content %}
+<div class="home-page">
+  <section class="hero-section">
+    <div class="hero-copy">
+      <span class="eyebrow">
+        <span class="status-dot"></span>
+        YOUR CAMPUS LIBRARY, REIMAGINED
+      </span>
+
+      <h1>Find a book.<br><em>Find your next idea.</em></h1>
+
+      <p class="hero-lede">
+        Explore the collection, check what’s available, and keep your reading
+        life organized in one place.
+      </p>
+
+      <form class="hero-search" method="get" action="{% url 'catalog' %}">
+        <span class="search-icon">⌕</span>
+        <input
+          name="q"
+          type="search"
+          placeholder="Search by title, author, or ISBN"
+          aria-label="Search books"
+        >
+        <button class="btn btn-primary" type="submit">
+          Search books <span>→</span>
+        </button>
+      </form>
+
+      <div class="hero-proof">
+        <div class="avatar-stack">
+          <span class="avatar avatar-a">S</span>
+          <span class="avatar avatar-b">R</span>
+          <span class="avatar avatar-c">A</span>
+          <span class="avatar avatar-d">+</span>
+        </div>
+        <span>Made for curious minds<br><strong>at DIU</strong></span>
+      </div>
+    </div>
+
+    <div class="hero-art" aria-label="A three-dimensional illustration of books">
+      <div class="art-orbit orbit-one"></div>
+      <div class="art-orbit orbit-two"></div>
+      <div class="art-glow"></div>
+
+      <div class="floating-note note-top">
+        <span class="note-spark">✦</span>
+        <span><b>Good things</b><small>are on these pages</small></span>
+      </div>
+
+      <div class="book-stack stack-back">
+        <div class="book-spine spine-green">
+          <b>THINK<br>AGAIN</b><small>ADAM GRANT</small>
+        </div>
+      </div>
+
+      <div class="book-stack stack-mid">
+        <div class="book-spine spine-orange">
+          <b>THE<br>CREATIVE<br>ACT</b><small>RICK RUBIN</small>
+        </div>
+      </div>
+
+      <div class="book-stack stack-front">
+        <div class="book-spine spine-blue">
+          <b>ATOMIC<br>HABITS</b><small>JAMES CLEAR</small><i>◉</i>
+        </div>
+      </div>
+
+      <div class="floating-note note-bottom">
+        <span class="note-icon">↗</span>
+        <span><b>Curated for you</b><small>Start exploring today</small></span>
+      </div>
+
+      <div class="art-shadow"></div>
+    </div>
+  </section>
+
+  <section class="stats-strip">
+    <div>
+      <strong>{{ stats.total_titles|default:'1,250' }}</strong>
+      <span>Titles to explore</span>
+    </div>
+    <div>
+      <strong>{{ stats.available_copies|default:'840' }}</strong>
+      <span>Available copies</span>
+    </div>
+    <div>
+      <strong>{{ stats.active_members|default:'3,200' }}</strong>
+      <span>Readers on campus</span>
+    </div>
+    <div class="stats-note">
+      <span class="status-dot"></span> Updated library collection
+    </div>
+  </section>
+
+  <section class="section-shell section-featured">
+    <div class="section-heading">
+      <div>
+        <span class="eyebrow">A GOOD PLACE TO START</span>
+        <h2>Popular this week</h2>
+        <p>Thoughtful reads picked by our campus community.</p>
+      </div>
+      <a class="text-link" href="{% url 'catalog' %}">
+        Browse all books <span>→</span>
+      </a>
+    </div>
+
+    <div class="book-grid">
+      {% for book in featured_books %}
+        {% include 'library/includes/book_card.html' with book=book %}
+      {% empty %}
+        {% for book in demo_books %}
+          {% include 'library/includes/book_card.html' with book=book %}
+        {% endfor %}
+      {% endfor %}
+    </div>
+  </section>
+
+  <section class="quote-band">
+    <div class="quote-mark">“</div>
+    <blockquote>
+      A library is not a luxury but one of the necessities of life.
+    </blockquote>
+    <span>— Henry Ward Beecher</span>
+  </section>
+</div>
+{% endblock %}

@@ -1,0 +1,94 @@
+{% extends 'library/base.html' %}
+{% block title %}Manage Library Members{% endblock %}
+
+{% block content %}
+<section class="dashboard-shell">
+  <div class="dashboard-heading">
+    <div>
+      <span class="eyebrow">MEMBERSHIP DIRECTORY</span>
+      <h1>Library Members & Students</h1>
+      <p>Manage registered borrowers, membership status, and borrowing permissions.</p>
+    </div>
+    <a class="btn btn-primary" href="#member-form">＋ Register New Member</a>
+  </div>
+
+  <div class="panel list-panel">
+    <div class="list-toolbar">
+      <form class="toolbar-search" method="get">
+        <span>⌕</span>
+        <input name="q" value="{{ request.GET.q }}" placeholder="Search by name, student ID, or email">
+        <button type="submit">Search</button>
+      </form>
+      <span class="muted">{{ page_obj.paginator.count|default:members|length }} members registered</span>
+    </div>
+
+    <div class="table-wrap">
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Member</th>
+            <th>Member ID</th>
+            <th>Role</th>
+            <th>Department</th>
+            <th>Email</th>
+            <th>Active Loans</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {% for member in members %}
+          <tr>
+            <td>
+              <span class="member-cell">
+                <span class="avatar avatar-small avatar-a">{{ member.name|slice:':1'|upper }}</span>
+                <strong>{{ member.name }}</strong>
+              </span>
+            </td>
+            <td><code>{{ member.member_code }}</code></td>
+            <td>{{ member.get_role_display }}</td>
+            <td>{{ member.department }}</td>
+            <td>{{ member.email|default:'—' }}</td>
+            <td>
+              <strong>{{ member.active_loans_count }}</strong> / 3
+            </td>
+            <td>
+              <span class="status-pill {% if member.status == 'active' %}pill-active{% else %}pill-overdue{% endif %}">
+                {{ member.get_status_display }}
+              </span>
+            </td>
+            <td>
+              <a class="table-action" href="{% url 'member_edit' member.pk %}">Edit</a>
+            </td>
+          </tr>
+          {% empty %}
+          <tr>
+            <td colspan="8" class="table-empty">No members found matching your search.</td>
+          </tr>
+          {% endfor %}
+        </tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Registration / Edit Form -->
+  {% if member_form %}
+  <section class="panel form-panel" id="member-form" style="margin-top: 30px;">
+    <div class="panel-heading">
+      <div>
+        <h2>{% if editing_member %}Edit Member Profile: {{ editing_member.name }}{% else %}Register New Member{% endif %}</h2>
+        <p>Complete details to enable borrowing privileges.</p>
+      </div>
+    </div>
+
+    <form method="post" class="form-grid">
+      {% csrf_token %}
+      {{ member_form.as_p }}
+      <div style="grid-column: 1 / -1; margin-top: 10px;">
+        <button class="btn btn-primary" type="submit">Save Member Profile <span>→</span></button>
+      </div>
+    </form>
+  </section>
+  {% endif %}
+</section>
+{% endblock %}

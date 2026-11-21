@@ -1,0 +1,14 @@
+{% extends 'library/base.html' %}
+{% block title %}Member login{% endblock %}
+{% block content %}
+<section class="auth-shell"><div class="auth-art"><span class="eyebrow">WELCOME BACK</span><h1>Your next chapter<br>starts here.</h1><p>Sign in to see your loans, due dates, and the books waiting for you.</p><div class="mini-books"><i class="mini-book mini-book-one"></i><i class="mini-book mini-book-two"></i><i class="mini-book mini-book-three"></i></div><span class="auth-art-note">A little reading goes a long way.</span></div>
+  <div class="auth-card"><a class="back-link" href="{% url 'home' %}">← Back to home</a><span class="eyebrow">MEMBER ACCESS</span><h2>Sign in to your library</h2><p class="muted">Use your library account to continue.</p>
+    <form method="post" class="form-stack">{% csrf_token %}{% if next %}<input type="hidden" name="next" value="{{ next }}">{% endif %}{% if form.non_field_errors %}<div class="form-error">{{ form.non_field_errors }}</div>{% endif %}
+      <label for="id_username">Username or student ID</label><input class="input" type="text" name="username" id="id_username" autocomplete="username" required value="{{ form.username.value|default:'' }}" placeholder="e.g. 221-15-0000">
+      {% if form.username.errors %}<small class="field-error">{{ form.username.errors|striptags }}</small>{% endif %}
+      <label for="id_password">Password</label><div class="password-wrap"><input class="input" type="password" name="password" id="id_password" autocomplete="current-password" required placeholder="Enter your password"><button type="button" class="password-toggle" data-password-toggle>Show</button></div>
+      {% if form.password.errors %}<small class="field-error">{{ form.password.errors|striptags }}</small>{% endif %}
+      <button class="btn btn-primary btn-block" type="submit">Sign in <span>→</span></button>
+    </form><p class="auth-foot">Need an account? Ask the library desk to register your member profile.</p>
+  </div></section>
+{% endblock %}

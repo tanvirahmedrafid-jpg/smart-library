@@ -17,7 +17,7 @@ from circulation.models import LibrarySettings
 logger = logging.getLogger(__name__)
 
 # Official Free-tier Model default
-DEFAULT_GEMINI_MODEL = "gemini-2.5-flash"
+DEFAULT_GEMINI_MODEL = "gemini-2.0-flash"
 GEMINI_API_URL_TEMPLATE = "https://generativelanguage.googleapis.com/v1beta/models/{model}:generateContent"
 
 def get_gemini_config():
@@ -86,7 +86,7 @@ def fallback_local_search(query_text, reason=None):
     
     return {
         'reply': prefix + res.get('reply', ''),
-        'books': res.get('suggestions', []),
+        'books': res.get('books', res.get('suggestions', [])),
         'quick_chips': res.get('quick_chips', ["Explore Catalog", "Borrowing Rules", "My Loans"]),
         'is_gemini': False,
         'ai_label': "S-liBro Catalogue Assistant (Local Verification)"

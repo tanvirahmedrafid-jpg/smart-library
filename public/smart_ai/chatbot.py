@@ -54,7 +54,8 @@ def process_smart_assistant_query(query_text, user=None):
                 'author': b.author,
                 'category': b.category.name if b.category else 'General',
                 'available': b.is_available,
-                'available_count': b.available_copies_count
+                'available_count': b.available_copies_count,
+                'url': f"/books/{b.id}/"
             })
         quick_chips = ["Software Engineering", "Algorithms", "AI & ML"]
 
@@ -73,7 +74,8 @@ def process_smart_assistant_query(query_text, user=None):
                     'author': b.author,
                     'category': cat.name,
                     'available': b.is_available,
-                    'available_count': b.available_copies_count
+                    'available_count': b.available_copies_count,
+                    'url': f"/books/{b.id}/"
                 })
         else:
             # Search by title, author, or keyword
@@ -100,7 +102,8 @@ def process_smart_assistant_query(query_text, user=None):
                         'author': b.author,
                         'category': b.category.name if b.category else 'General',
                         'available': b.is_available,
-                        'available_count': b.available_copies_count
+                        'available_count': b.available_copies_count,
+                        'url': f"/books/{b.id}/"
                     })
             else:
                 reply = f"I couldn't find an exact match for '{query_text}'. Would you like to browse our full catalogue or search by another keyword?"

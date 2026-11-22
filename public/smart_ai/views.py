@@ -23,12 +23,11 @@ def ai_chat_api(request):
     # Log query safely for library search analytics
     if message:
         try:
-            profile = getattr(request.user, 'member_profile', None) if request.user.is_authenticated else None
+            auth_user = request.user if request.user.is_authenticated else None
             SmartQueryLog.objects.create(
-                user=profile,
-                query=message[:250],
-                detected_intent='gemini_search' if result.get('is_gemini') else 'local_catalog',
-                response_snippet=(result.get('reply', '')[:250])
+                user=auth_user,
+                query_text=message[:300],
+                response_text=(result.get('reply', '')[:1000])
             )
         except Exception:
             pass

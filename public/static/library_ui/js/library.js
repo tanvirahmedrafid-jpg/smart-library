@@ -160,18 +160,40 @@ document.addEventListener('DOMContentLoaded', () => {
   const aiSendBtn = document.getElementById('aiSendBtn');
 
   if (aiFabBtn && aiChatWindow) {
-    aiFabBtn.addEventListener('click', () => {
-      aiChatWindow.classList.toggle('active');
-      if (aiChatWindow.classList.contains('active')) {
+    aiFabBtn.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const isOpen = aiChatWindow.classList.toggle('open');
+      aiChatWindow.classList.toggle('active', isOpen);
+      if (isOpen) {
         setTimeout(() => aiChatInput && aiChatInput.focus(), 150);
       }
     });
 
     if (aiCloseBtn) {
-      aiCloseBtn.addEventListener('click', () => {
+      aiCloseBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        aiChatWindow.classList.remove('open');
         aiChatWindow.classList.remove('active');
       });
     }
+
+    // Close when clicking outside chat window
+    document.addEventListener('click', (e) => {
+      if (aiChatWindow.classList.contains('open') || aiChatWindow.classList.contains('active')) {
+        if (!aiChatWindow.contains(e.target) && !aiFabBtn.contains(e.target)) {
+          aiChatWindow.classList.remove('open');
+          aiChatWindow.classList.remove('active');
+        }
+      }
+    });
+
+    // Close on Escape key
+    document.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && (aiChatWindow.classList.contains('open') || aiChatWindow.classList.contains('active'))) {
+        aiChatWindow.classList.remove('open');
+        aiChatWindow.classList.remove('active');
+      }
+    });
 
     function appendMessage(text, sender, books, chips, aiLabel) {
       const msgDiv = document.createElement('div');

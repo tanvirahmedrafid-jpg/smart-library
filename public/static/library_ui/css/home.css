@@ -773,9 +773,25 @@
   color: #60A5FA;
 }
 
+[data-theme="dark"] .stat-label {
+  color: #94A3B8;
+}
+
+[data-theme="dark"] .stat-number {
+  color: #F8FAFC;
+}
+
 [data-theme="dark"] .mockup-category-bar {
   background: #131E33;
   border-color: #26354E;
+}
+
+[data-theme="dark"] .mockup-category-heading strong {
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .mockup-divider {
+  color: #3B5377;
 }
 
 [data-theme="dark"] .cat-pill-btn {
@@ -786,10 +802,20 @@
 
 [data-theme="dark"] .cat-pill-btn:hover {
   background: #1F335C;
+  color: #FF7A1A;
+  border-color: #FF7A1A;
+}
+
+[data-theme="dark"] .mockup-section-title {
+  color: #F8FAFC;
 }
 
 [data-theme="dark"] .mockup-view-catalog-link {
-  color: #60A5FA;
+  color: #38BDF8;
+}
+
+[data-theme="dark"] .mockup-view-catalog-link:hover {
+  color: #FF7A1A;
 }
 
 [data-theme="dark"] .mockup-book-card {
@@ -799,6 +825,18 @@
 
 [data-theme="dark"] .mockup-book-card:hover {
   border-color: #3B5377;
+}
+
+[data-theme="dark"] .mockup-book-title a {
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .mockup-book-title a:hover {
+  color: #FF7A1A;
+}
+
+[data-theme="dark"] .mockup-book-author {
+  color: #94A3B8;
 }
 
 [data-theme="dark"] .badge-available {
@@ -820,21 +858,37 @@
 }
 
 [data-theme="dark"] .card-due-dates {
-  background: #1E232E;
-  border-color: #4E3625;
+  background: #16243E;
+  border-color: #2E3F5C;
+}
+
+[data-theme="dark"] .card-due-dates .sidebar-title {
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .card-due-dates .sidebar-text {
+  color: #CBD5E1;
+}
+
+[data-theme="dark"] .card-due-dates .sidebar-text strong {
+  color: #F8FAFC;
 }
 
 [data-theme="dark"] .card-borrowing-rules {
-  background: #141F36;
-  border-color: #26354E;
+  background: #16243E;
+  border-color: #2E3F5C;
 }
 
-[data-theme="dark"] .sidebar-text {
-  color: #94A3B8;
+[data-theme="dark"] .card-borrowing-rules .sidebar-title {
+  color: #F8FAFC;
 }
 
 [data-theme="dark"] .borrowing-rules-list li {
   color: #CBD5E1;
+}
+
+[data-theme="dark"] .borrowing-rules-list li strong {
+  color: #F8FAFC;
 }
 
 /* ========================================================
@@ -961,9 +1015,25 @@
   border-top-color: #26354E;
 }
 
+[data-theme="dark"] .section-badge-info {
+  color: #94A3B8;
+}
+
 [data-theme="dark"] .promo-card {
   background: #131E33;
   border-color: #26354E;
+}
+
+[data-theme="dark"] .promo-tag {
+  color: #FF7A1A;
+}
+
+[data-theme="dark"] .promo-card h3 {
+  color: #F8FAFC;
+}
+
+[data-theme="dark"] .promo-card p {
+  color: #CBD5E1;
 }
 
 /* ========================================================

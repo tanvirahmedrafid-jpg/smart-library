@@ -95,7 +95,7 @@
       <h2>Database Maintenance</h2>
       <p>Download full SQLite backup snapshot or inspect table record counts.</p>
 
-      <div style="background: white; border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-top: 14px;">
+      <div class="db-stats-card" style="border: 1px solid var(--line); border-radius: 10px; padding: 14px; margin-top: 14px;">
         <div style="display:grid; grid-template-columns: 1fr 1fr; gap: 8px; font-size: 11px;">
           <div><span style="color:var(--muted);">Database Engine:</span> <strong>{{ db_stats.engine }}</strong></div>
           <div><span style="color:var(--muted);">File Name:</span> <code>{{ db_stats.path }}</code></div>

@@ -227,7 +227,7 @@
               <div class="book-table-cell">
                 <div class="table-cover cover-{{ book.cover_style|default:'orange' }}">{{ book.title|slice:':1' }}</div>
                 <span>
-                  <strong><a href="{% url 'book_detail' book.pk %}" style="color:var(--blue-dark);">{{ book.title }}</a></strong>
+                  <strong><a href="{% url 'book_detail' book.pk %}">{{ book.title }}</a></strong>
                   <small>{{ book.author }}</small>
                 </span>
               </div>

@@ -1,51 +1,21 @@
 {
   "hosting": {
-    "public": "public",
+    "public": "public/static",
     "ignore": [
       "firebase.json",
       ".firebaseignore",
       ".firebaserc",
       "**/.*",
-      "**/.*/**",
       "**/node_modules/**",
-      "**/.venv/**",
-      "**/Scripts/**",
-      "**/Lib/**",
-      "**/Include/**",
-      "**/*.exe",
-      "**/*.dll",
-      "**/*.pyd",
-      "**/*.pyc",
-      "**/*.pyo",
-      "**/__pycache__/**",
-      "**/*.py",
-      "**/*.sqlite3",
-      "**/*.db",
-      "**/*.env",
-      "**/accounts/**",
-      "**/catalog/**",
-      "**/circulation/**",
-      "**/library/**",
-      "**/smart_ai/**",
-      "**/smart_library/**",
-      "**/dashboard/**",
-      "**/media/**",
-      "**/brain/**",
-      "**/templates/**",
-      "**/*.log",
-      "**/*.bat",
-      "**/*.sh",
-      "**/*.zip",
-      "**/*.tar.gz",
-      "**/*.md",
-      "**/test_app.py",
-      "**/seed_data.py",
-      "**/manage.py"
+      "**/.venv/**"
     ],
     "rewrites": [
       {
         "source": "**",
-        "destination": "/index.html"
+        "run": {
+          "serviceId": "smart-library",
+          "region": "us-central1"
+        }
       }
     ]
   }
